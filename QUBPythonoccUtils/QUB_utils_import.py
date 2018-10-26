@@ -32,7 +32,7 @@ from OCC.TopoDS import topods
 
 import csv
 
-def read_step_file_withnames(filename, breadface = False, breadedge = False):
+def read_step_file_withnames(filename, breadface = False, breadedge = False): #Read a step file with names attached to solid, faces (can be extended to edges)
     """""[Read a step file with names attached to solid, faces (can be extended to edges)]
     
     Arguments:
@@ -70,7 +70,7 @@ def read_step_file_withnames(filename, breadface = False, breadedge = False):
         item = Handle_StepRepr_RepresentationItem.DownCast(item).GetObject()
         name = item.Name().GetObject().ToCString()
         if name:
-#            print('Found entity named: {}: {}.'.format(name, s))
+            #print('Found entity named: {}: {}.'.format(name, s))
             nameid = int(name.split('_')[-1])
             dSolids[nameid] = solid
     
@@ -116,7 +116,7 @@ def read_step_file_withnames(filename, breadface = False, breadedge = False):
     return ret
 
 
-def read_csv_file(csvnamefile):
+def read_csv_file(csvnamefile): #Read a csv file and return the row content
     """[Read a csv file and return the row content]
     
     Arguments:
