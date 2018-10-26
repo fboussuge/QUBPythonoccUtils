@@ -115,7 +115,6 @@ def read_step_file_withnames(filename, breadface = False, breadedge = False): #R
     ret = (dSolids, dFaces, dEdges)
     return ret
 
-
 def read_csv_file(csvnamefile): #Read a csv file and return the row content
     """[Read a csv file and return the row content]
     

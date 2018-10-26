@@ -103,8 +103,8 @@ def getEntitiesSolids(cursor): #get the properties of all solids (none yet)
     ret.append(c[0])
   return ret
 
-def getBoundedFacesofBody(cursor, body): #get the bounded entities of an entity, e.g. the faces bounding a solid
-  """[Query to get the bounded entities of an entity, e.g. the faces bounding a solid]
+def getBoundedFacesofBody(cursor, body): #get the bounded faces of a solid
+  """[Query to get the bounded faces of a solid]
   
   Arguments:
     cursor {[type]} -- [db cursor]
