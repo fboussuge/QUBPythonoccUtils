@@ -82,6 +82,110 @@ def getEdgeProperties(cursor): #get the properties of all edges: edgetype, edgec
     ret.append(c)
   return ret
 
+def getEntities_VT(cursor): #get all entities which are in Topology_VT having Dim>0, i.e. Body, Face and Edge
+  '''[Query to get all entities having Dim>0, i.e. Body, Face and Edge]
+  
+  Arguments:
+    cursor {[type]} -- [db cursor]
+  
+  Returns:
+    [type] -- [tuple (entityID, )]
+  '''
+  r = cursor.execute(
+            """
+           SELECT *
+           FROM Entity INNER JOIN Topology_VT on Entity.Label = Topology_VT.Entity
+           WHERE (((Entity.Dim)>0) )
+           GROUP BY (Entity)
+            """
+                )
+  ret = []
+  for c in r:
+    ret.append(c)
+  return ret
+
+def getFaceProperties_VT(cursor): #get the properties of all faces and superset faces: facetype 
+  '''[Query to get the properties of all faces and supersets faces: facetype]
+  
+  Arguments:
+    cursor {[type]} -- [db cursor]
+  
+  Returns:
+    [type] -- [tuple (FaceID, intFaceType)]
+  '''
+  #firt query for getting original face
+  r = cursor.execute(
+            """
+            SELECT Face, Type
+            FROM FaceProperties
+            WHERE Face IN (SELECT Entity FROM Topology_VT) 
+            """
+                )
+  ret = []
+  for c in r:
+    ret.append(c)
+
+  #second query for superset faces
+  r = cursor.execute(
+            """
+            SELECT VirtualTopology.Entity, FaceProperties.Type
+            FROM VirtualTopology INNER JOIN FaceProperties ON VirtualTopology.HostEntity = FaceProperties.Face
+            GROUP BY VirtualTopology.Entity
+            HAVING (((VirtualTopology.Entity) In (SELECT VirtualTopology.Entity
+            FROM Entity INNER JOIN VirtualTopology ON Entity.Label = VirtualTopology.HostEntity
+            GROUP BY Entity.Dim, VirtualTopology.Entity
+            HAVING (((Entity.Dim)=2) AND ((Count(VirtualTopology.Entity))>1))))) 
+            """
+                )
+
+  for c in r:
+    ret.append(c)
+
+  
+  return ret
+
+def getEdgeProperties_VT(cursor): #get the properties of all edges and superset edges: facetype
+  '''[Query to get the properties of all edges and supersets edges: facetype]
+  
+  Arguments:
+    cursor {[type]} -- [db cursor]
+  
+  Returns:
+    [type] -- [tuple (FaceID, intFaceType)]
+  '''
+  #firt query for getting original edges
+  r = cursor.execute(
+            """
+            SELECT Edge, Convexity, Type
+            FROM EdgeProperties
+            WHERE Edge IN (SELECT Entity FROM Topology_VT) 
+            """
+                )
+  ret = []
+  for c in r:
+    ret.append(c)
+
+  #second query for superset faces
+  r = cursor.execute(
+            """
+            SELECT VirtualTopology.Entity, EdgeProperties.Convexity, EdgeProperties.Type
+            FROM VirtualTopology INNER JOIN EdgeProperties ON VirtualTopology.HostEntity = EdgeProperties.Edge
+            GROUP BY VirtualTopology.Entity
+            HAVING (((VirtualTopology.Entity) In (SELECT VirtualTopology.Entity
+            FROM Entity INNER JOIN VirtualTopology ON Entity.Label = VirtualTopology.HostEntity
+            GROUP BY Entity.Dim, VirtualTopology.Entity
+            HAVING (((Entity.Dim)=1) AND ((Count(VirtualTopology.Entity))>1))))) 
+            """
+                )
+
+  for c in r:
+    ret.append(c)
+
+  
+  return ret
+
+
+
 def getEntitiesSolids(cursor): #get the properties of all solids (none yet)
   '''[Query to get the properties of all solids (none yet)]
   
@@ -93,33 +197,14 @@ def getEntitiesSolids(cursor): #get the properties of all solids (none yet)
   '''
   r = cursor.execute(
             """
-           SELECT * 
+           SELECT Entity.Label, Entity.Dim 
            FROM Entity
            WHERE (((Entity.Dim)=3) )
             """
                 )
   ret = []
   for c in r:
-    ret.append(c[0])
+    ret.append(c)
   return ret
 
 def getBoundedFacesofBody(cursor, body): #get the bounded faces of a solid
-  """[Query to get the bounded faces of a solid]
-  
-  Arguments:
-    cursor {[type]} -- [db cursor]
-    body {[type]} -- [ID of the bounding entity, e.g. solid ID]
-  
-  Returns:
-    [type] -- [list of bounded entity ID]
-  """
-
-  sql = ''' SELECT Topology.BoundEntity
-          FROM Topology INNER JOIN Entity ON Topology.Entity = Entity.Label
-		  WHERE (((Entity.Label)=={0}) )'''.format(body)
-
-  r = cursor.execute(sql)
-  ret = []
-  for c in r:
-    ret.append(c[0])
-  return ret  
